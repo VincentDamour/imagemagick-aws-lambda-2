@@ -159,26 +159,6 @@ $(CACHE_DIR)/lib/libheif.a: $(LIBHEIF_SOURCE)
 	make
 	make install
 
-## ghostscript
-
-GS_SOURCE=ghostscript-$(GHOSTSCRIPT_VERSION).tar.gz
-
-$(GS_SOURCE):
-	curl -LO https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs927/$(GS_SOURCE)
-
-$(CACHE_DIR)/lib/ghostscript.a: $(GS_SOURCE)
-	tar xf $<
-	cd ghostscript*
-	PKG_CONFIG_PATH=$(CACHE_DIR)/lib/pkgconfig \
-	./configure \
-		LDFLAGS=-L$(CACHE_DIR)/lib \
-		--disable-dependency-tracking \
-		--disable-shared \
-		--enable-static \
-		--prefix=$(CACHE_DIR) 
-	make
-	make install
-
 
 ## ImageMagick
 
@@ -196,8 +176,7 @@ LIBS:=$(CACHE_DIR)/lib/libjpeg.a \
 	$(CACHE_DIR)/lib/libwebp.a \
 	$(CACHE_DIR)/lib/libfreetype.a \
 	$(CACHE_DIR)/lib/libde265.a \
-	$(CACHE_DIR)/lib/libheif.a \
-	$(CACHE_DIR)/lib/ghostscript.a 
+	$(CACHE_DIR)/lib/libheif.a
 
 $(TARGET_DIR)/bin/identify: $(IMAGE_MAGICK_SOURCE) $(LIBS)
 	tar xf $<
@@ -222,6 +201,20 @@ $(TARGET_DIR)/bin/identify: $(IMAGE_MAGICK_SOURCE) $(LIBS)
 	make all
 	make install
 
+## GhostScript 
+GHOST_SCRIPT_SOURCE=ghostscript-$(GHOSTSCRIPT_VERSION).tar.gz
+
+$(GHOST_SCRIPT_SOURCE):
+	curl -L https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs923/ghostscript-9.23.tar.gz -o ghostscript-9.23.tar.gz
+
+$(TARGET_DIR)/bin/gs: $(GHOST_SCRIPT_SOURCE)
+	tar -zxvf ghostscript-9.23.tar.gz
+	cd ghostscript-9.23
+	./configure --disable-compile-inits --with-x --with-drivers=ALL --without-luratech --with-libiconv=gnu --prefix=$(TARGET_DIR)
+	make
+	make install
+
 libs: $(LIBS)
 
-all: $(TARGET_DIR)/bin/identify
+all: $(TARGET_DIR)/bin/identify \
+		$(TARGET_DIR)/bin/gs
